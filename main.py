@@ -6,6 +6,7 @@ pygame.init()
 img_player = "player_tank_sprite.png"
 img_enemy = "enemy_tank_sprite.png"
 img_wall = "wall_sprite.png"
+img_bullet = "bullet.png"
 
 
 
@@ -26,6 +27,9 @@ class Player(GSprite):
     def __init__(self, entity_img, entity_pos_x, entity_pos_y, entity_size,  entity_speed):
         super().__init__(entity_img, entity_pos_x, entity_pos_y, entity_size, entity_speed)
         self.direction = "UP"
+
+        self.last_shot_time = 0
+        self.shoot_cooldown = 1250
 
     
     def movement(self):
@@ -97,8 +101,41 @@ class Player(GSprite):
                 elif self.direction == "DOWN":
                     self.rect.y -= self.speed
 
+    def shoot(self):
+        keys = pygame.key.get_pressed()
+        timer = pygame.time.get_ticks()
+
+        if keys[K_f] and timer - self.last_shot_time > self.shoot_cooldown:
+            bullet = PlayerBullet(img_bullet, self.rect.centerx, self.rect.centery, 15, 5, self.direction)
+            player_bullet_group.add(bullet)
+
+            self.last_shot_time = timer   
+class PlayerBullet(GSprite):
+    def __init__(self, entity_img, entity_pos_x, entity_pos_y, entity_size,  entity_speed, direction):
+        super().__init__(entity_img, entity_pos_x, entity_pos_y, entity_size, entity_speed)
+        self.direction = direction
+
+    
+    
+        
+        if self.direction == "UP":
+            self.image = pygame.transform.rotate(self.image, 90)
+        elif self.direction == "DOWN":
+            self.image = pygame.transform.rotate(self.image, 270)
+        elif self.direction == "LEFT":
+            self.image = pygame.transform.rotate(self.image, 180)
         
 
+        self.rect = self.image.get_rect(center=(entity_pos_x, entity_pos_y))
+    def update(self):
+        if self.direction == "UP":
+            self.rect.y -= self.speed
+        elif self.direction == "DOWN":
+            self.rect.y += self.speed
+        elif self.direction == "LEFT":
+            self.rect.x -= self.speed
+        elif self.direction == "RIGHT":
+            self.rect.x += self.speed
 
 class Enemy(GSprite):
     pass
@@ -109,7 +146,7 @@ window = display.set_mode((800, 600))
 display.set_caption("Круті танчики")
 background = transform.scale(image.load("background.png"), (800, 600))
 tank_player = Player(img_player, 50, 50, 45, 3)
-
+player_bullet_group = sprite.Group()
 level = [
     "0000000000000000",
     "0      0       0",
@@ -148,7 +185,10 @@ while game:
     window.blit(background, (0,0) )
     window.blit(tank_player.image, tank_player.rect)
     tank_player.movement()
+    tank_player.shoot()
     tank_player.collision(walls)
+    player_bullet_group.draw(window)
+    player_bullet_group.update()
 
     for wall in walls:
         wall.reset()
