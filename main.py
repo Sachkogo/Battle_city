@@ -139,15 +139,53 @@ class PlayerBullet(GSprite):
         if pygame.sprite.spritecollide(self, walls, False):
             self.kill()
 
+        hit_enemies = pygame.sprite.spritecollide(self, enemys_group, True)
+        if hit_enemies:
+            self.kill()
+
+
 class Enemy(GSprite):
-    pass
+    def __init__(self, entity_img, entity_pos_x, entity_pos_y, entity_size,  entity_speed):
+        super().__init__(entity_img, entity_pos_x, entity_pos_y, entity_size, entity_speed)
+        self.direction = "UP"
+
+    def update(self):
+        if self.direction == "UP":
+            self.rect.y -= self.speed
+            if pygame.sprite.spritecollide(self, walls, False):
+                self.image = pygame.transform.rotate(self.image, 90)
+                self.direction = "LEFT"
+        if self.direction == "DOWN":
+            self.rect.y += self.speed
+            if pygame.sprite.spritecollide(self, walls, False):
+                self.image = pygame.transform.rotate(self.image, 90)
+                self.direction = "RIGHT"
+        if self.direction == "RIGHT":
+            self.rect.x += self.speed
+            if pygame.sprite.spritecollide(self, walls, False):
+                self.image = pygame.transform.rotate(self.image, 90)
+                self.direction = "UP"
+        if self.direction == "LEFT":
+            self.rect.x -= self.speed
+            if pygame.sprite.spritecollide(self, walls, False):
+                self.image = pygame.transform.rotate(self.image, 90)
+                self.direction = "DOWN"
+        
+
+
+        
 
 
 
 window = display.set_mode((800, 600))
 display.set_caption("Круті танчики")
 background = transform.scale(image.load("background.png"), (800, 600))
-tank_player = Player(img_player, 50, 50, 45, 3)
+tank_player = Player(img_player, 200, 350, 45, 3)
+tank_enemy1 = Enemy(img_enemy, 150, 250, 45, 2)
+tank_enemy2 = Enemy(img_enemy, 50, 500, 45, 2)
+tank_enemy3 = Enemy(img_enemy, 650, 300, 45, 2)
+enemys_group = sprite.Group()
+enemys_group.add(tank_enemy1, tank_enemy2, tank_enemy3)
 player_bullet_group = sprite.Group()
 level = [
     "0000000000000000",
@@ -175,6 +213,7 @@ for ent in level:
         x += 50
     y += 50
 
+
 game = True
 clock = time.Clock()
 FPS = 60
@@ -191,6 +230,8 @@ while game:
     tank_player.collision(walls)
     player_bullet_group.draw(window)
     player_bullet_group.update()
+    enemys_group.draw(window)
+    enemys_group.update()
 
     for wall in walls:
         wall.reset()
