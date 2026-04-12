@@ -4,6 +4,12 @@ from pygame import *
 import random
 
 pygame.init()
+pygame.mixer.init()
+
+shoot_sound = pygame.mixer.Sound('shoot.wav')
+enemy_destroyed_sound = pygame.mixer.Sound('enemy_destroyed.wav')
+player_destroyed_sound = pygame.mixer.Sound('player_destroyed.wav')
+win_sound = pygame.mixer.Sound('win.wav')
 
 img_player = "player_tank_sprite.png"
 img_enemy = "enemy_tank_sprite.png"
@@ -110,6 +116,7 @@ class Player(GSprite):
 
             self.last_shot_time = timer   
 
+            shoot_sound.play()
 
 
 class PlayerBullet(GSprite):
@@ -145,6 +152,7 @@ class PlayerBullet(GSprite):
         if hit_enemies:
             global kill_count
             kill_count += len(hit_enemies)
+            enemy_destroyed_sound.play()
             self.kill()
 
 
@@ -179,6 +187,7 @@ class EnemyBullet(GSprite):
         if hit_player:
             global game_over
             game_over = True
+            player_destroyed_sound.play()
             self.kill()
                     
 
@@ -216,6 +225,7 @@ class Enemy(GSprite):
 
             bullet = EnemyBullet(img_bullet, self.rect.centerx, self.rect.centery, 15, 5, self.direction)
             enemys_bullet_group.add(bullet)
+            shoot_sound.play()
 
 
 def draw_text(text, size, color, x, y):
